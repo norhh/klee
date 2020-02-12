@@ -66,7 +66,6 @@ void klee_make_symbolic(void *array, size_t nbytes, const char *name) {
       rand_init = 0;
     }
   }
-
   if (rand_init) {
     if (!strcmp(name,"syscall_a0")) {
       unsigned long long *v = array;
@@ -96,6 +95,7 @@ void klee_make_symbolic(void *array, size_t nbytes, const char *name) {
       tmp[strlen(tmp)-1] = '\0'; /* kill newline */
     }
     testData = kTest_fromFile(name);
+
     if (!testData) {
       fprintf(stderr, "KLEE-RUNTIME: unable to open .ktest file\n");
       exit(1);
@@ -186,3 +186,5 @@ void klee_abort() {
 void klee_print_expr(const char *msg, ...) { }
 
 void klee_set_forking(unsigned enable) { }
+
+void klee_save_variables(int v1, int v2) {}

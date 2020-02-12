@@ -27,10 +27,18 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Module.h"
-
+#include <execinfo.h>
 #include <errno.h>
 #include <sstream>
+#include <unistd.h>
+#include <random>
+#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
 
+using namespace std;
 using namespace llvm;
 using namespace klee;
 
@@ -98,6 +106,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
 #endif
   add("klee_is_symbolic", handleIsSymbolic, true),
   add("klee_make_symbolic", handleMakeSymbolic, false),
+  add("klee_save_variables", handleSaveVariables, false),
   add("klee_mark_global", handleMarkGlobal, false),
   add("klee_open_merge", handleOpenMerge, false),
   add("klee_close_merge", handleCloseMerge, false),
@@ -775,7 +784,6 @@ void SpecialFunctionHandler::handleMakeSymbolic(ExecutionState &state,
                                                 KInstruction *target,
                                                 std::vector<ref<Expr> > &arguments) {
   std::string name;
-
   if (arguments.size() != 3) {
     executor.terminateStateOnError(state, "Incorrect number of arguments to klee_make_symbolic(void*, size_t, char*)", Executor::User);
     return;
@@ -868,4 +876,23 @@ void SpecialFunctionHandler::handleDivRemOverflow(ExecutionState &state,
                                                std::vector<ref<Expr> > &arguments) {
   executor.terminateStateOnError(state, "overflow on division or remainder",
                                  Executor::Overflow);
+}
+
+void SpecialFunctionHandler::handleSaveVariables(ExecutionState &state,
+                                                  KInstruction *target,
+                                                  std::vector<ref<Expr> > &arguments) {
+    string s = "klee-last/" + to_string(rand()%10000) + "_path_summary";
+    int fd = open(s.c_str(), O_WRONLY| O_CREAT,  S_IRWXU);
+    std::error_code ec;
+    llvm::raw_fd_ostream f(fd, true);
+    for(int i=0; i<arguments.size(); i++) {
+        (*arguments[i]).print(f);
+        f<<";";
+    }
+    f<<"Constraints;";
+    for(auto it: state.constraints) {
+        it->print(f);
+        f<<";";
+    }
+    f.close();
 }

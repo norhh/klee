@@ -771,6 +771,7 @@ static const char *modelledExternals[] = {
   "klee_make_symbolic",
   "klee_mark_global",
   "klee_open_merge",
+  "klee_save_variables",
   "klee_close_merge",
   "klee_prefer_cex",
   "klee_posix_prefer_cex",

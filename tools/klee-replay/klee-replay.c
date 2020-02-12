@@ -477,7 +477,6 @@ void klee_make_symbolic(void *addr, size_t nbytes, const char *name) {
     }
   }
 }
-
 /* Redefined here so that we can check the value read. */
 int klee_range(int start, int end, const char* name) {
   int r;
